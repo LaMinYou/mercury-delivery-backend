@@ -12,9 +12,39 @@ class RestaurantController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        // 1. Base Query
+        $query = User::where('role_id', 2);
+
+        // 2. Apply Search Filters
+        if ($request->filled('name')) {
+            $query->where('name', 'like', "%{$request->name}%");
+        }
+        if ($request->filled('address')) {
+            $query->where('address', 'like', "%{$request->address}%");
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // 3. Handle Sorting (The fix for the arrows)
+        if ($request->has('sortBy') && is_array($request->sortBy)) {
+            foreach ($request->sortBy as $sort) {
+                $query->orderBy($sort['key'], $sort['order']);
+            }
+        } else {
+            $query->latest(); // Default sort if no arrow is clicked
+        }
+
+        // 4. Pagination
+        $perPage = $request->input('itemsPerPage', 5);
+        $restaurants = $query->paginate($perPage);
+
+        return response()->json([
+            'items' => $restaurants->items(),
+            'total' => $restaurants->total(),
+        ]);
     }
 
     /**
@@ -49,9 +79,9 @@ class RestaurantController extends Controller
             $user->phone = $request->phone;
             $user->address = $request->address;
             $user->role_id = 2;
+            $user->status = 'active';
             $user->save();
             return response()->json(['message' => 'Created record for new restaurant'], 201);
-
         } catch (\Exception $e) {
 
             Log::error('Error creating restaurant: ' . $e->getMessage());
@@ -74,7 +104,7 @@ class RestaurantController extends Controller
      */
     public function edit(User $user)
     {
-        //
+        return response()->json($user);
     }
 
     /**
@@ -82,7 +112,23 @@ class RestaurantController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        //
+        $request->validate([
+            'name' => 'required|string',
+            'username' => 'required|string|max:255|unique:users,username',
+            'email' => 'required|email|max:255|unique:users,email',
+            'password' => 'required|min:8',
+            'phone' => 'required|string|regex:/^([0-9\s\-\+\(\)]*)$/|min:10',
+            'address' => 'required'
+        ]);
+        $user->name = $request->name;
+        $user->username = $request->username;
+        $user->email = $request->email;
+        $user->password = Hash::make($request->password);
+        $user->phone = $request->phone;
+        $user->address = $request->address;
+        $user->save();
+
+        return response()->json(['message' => 'Successfully updated'], 200);
     }
 
     /**

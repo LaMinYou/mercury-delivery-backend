@@ -17,6 +17,9 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::middleware('role:1')->group(function () {
         Route::get('/auth/admin', [AuthController::class, 'getAdminUser']);
         Route::post('/auth/admin/restaurant/new', [RestaurantController::class, 'store']);
+        Route::get('/auth/admin/restaurants', [RestaurantController::class, 'index']);
+        Route::get('/auth/admin/restaurant/{user}', [RestaurantController::class, 'edit']);
+        Route::post('/auth/admin/restaurants/{user}', [RestaurantController::class, 'update']);
     });
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 });
