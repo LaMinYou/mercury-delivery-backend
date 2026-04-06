@@ -25,7 +25,8 @@ class RestaurantController extends Controller
             $query->where('address', 'like', "%{$request->address}%");
         }
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            if($request->status != 'all')
+                $query->where('status', $request->status);
         }
 
         // 3. Handle Sorting (The fix for the arrows)
@@ -107,28 +108,39 @@ class RestaurantController extends Controller
         return response()->json($user);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, User $user)
     {
+        // 1. Validate (Include the unique ignore fix from before)
         $request->validate([
             'name' => 'required|string',
-            'username' => 'required|string|max:255|unique:users,username',
-            'email' => 'required|email|max:255|unique:users,email',
-            'password' => 'required|min:8',
-            'phone' => 'required|string|regex:/^([0-9\s\-\+\(\)]*)$/|min:10',
+            'username' => 'required|string|unique:users,username,' . $user->id,
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'phone' => 'required',
             'address' => 'required'
         ]);
-        $user->name = $request->name;
-        $user->username = $request->username;
-        $user->email = $request->email;
-        $user->password = Hash::make($request->password);
-        $user->phone = $request->phone;
-        $user->address = $request->address;
-        $user->save();
 
-        return response()->json(['message' => 'Successfully updated'], 200);
+        // 2. Update properties
+        $user->fill($request->only(['name', 'username', 'email', 'phone', 'address']));
+
+        // 3. Save and check for errors
+        if ($user->save()) {
+            return response()->json(['message' => 'Updated successfully']);
+        }
+
+        return response()->json(['message' => 'Error saving to database'], 500);
+    }
+
+    public function handleStatus(User $user){
+        if($user->status == 'active'){
+            $user->status = 'inactive';
+        }else{
+            $user->status = 'active';
+        }
+        if ($user->save()) {
+            return response()->json(['message' => 'Updated status successfully']);
+        }
+
+        return response()->json(['message' => 'Error saving to database'], 500);
     }
 
     /**
