@@ -21,6 +21,7 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::get('/auth/admin/restaurant/{user}', [RestaurantController::class, 'edit']);
         Route::post('/auth/admin/restaurants/{user}', [RestaurantController::class, 'update']);
         Route::post('/auth/admin/restaurants/updatestatus/{user}', [RestaurantController::class, 'handleStatus']);
+        Route::delete('/auth/admin/restaurants/{user}', [RestaurantController::class, 'destroy']);
     });
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 });

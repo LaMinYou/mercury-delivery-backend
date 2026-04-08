@@ -97,7 +97,11 @@ class RestaurantController extends Controller
      */
     public function show(User $user)
     {
-        //
+        try{
+
+        }catch(\Exception $e){
+
+        }
     }
 
     /**
@@ -148,6 +152,11 @@ class RestaurantController extends Controller
      */
     public function destroy(User $user)
     {
-        //
+        try{
+            $user->delete();
+            return response()->json(['message' => 'Deleted restaurant successfully']);
+        }catch(\Exception $e){
+            return response()->json(['message' => 'Something went wrong while deleteing the record.'], 500);
+        }
     }
 }
