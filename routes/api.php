@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RestaurantController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +23,7 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::post('/auth/admin/restaurants/{user}', [RestaurantController::class, 'update']);
         Route::post('/auth/admin/restaurants/updatestatus/{user}', [RestaurantController::class, 'handleStatus']);
         Route::delete('/auth/admin/restaurants/{user}', [RestaurantController::class, 'destroy']);
+        Route::get('/admin/users/role-count', [UserController::class, 'getRoleCounts']);
     });
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 });
