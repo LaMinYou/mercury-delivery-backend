@@ -28,7 +28,9 @@ class User extends Authenticatable
         'address',
         'location',
         'status',
-        'role_id'
+        'role_id',
+        'latitude',
+        'longitude'
     ];
 
     /**

@@ -64,10 +64,11 @@ class RestaurantController extends Controller
         $request->validate([
             'name' => 'required|string',
             'username' => 'required|string|max:255|unique:users,username',
-            'email' => 'required|email|max:255|unique:users,email',
             'password' => 'required|min:8',
             'phone' => 'required|string|regex:/^([0-9\s\-\+\(\)]*)$/|min:10',
-            'address' => 'required'
+            'address' => 'required',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
         ]);
 
         try {
@@ -75,10 +76,12 @@ class RestaurantController extends Controller
             $user = new User();
             $user->name = $request->name;
             $user->username = $request->username;
-            $user->email = $request->email;
+            $user->email = $request->email ?? '';
             $user->password = Hash::make($request->password);
             $user->phone = $request->phone;
             $user->address = $request->address;
+            $user->latitude = $request->latitude;
+            $user->longitude = $request->longitude;
             $user->role_id = 2;
             $user->status = 'active';
             $user->save();
@@ -118,13 +121,14 @@ class RestaurantController extends Controller
         $request->validate([
             'name' => 'required|string',
             'username' => 'required|string|unique:users,username,' . $user->id,
-            'email' => 'required|email|unique:users,email,' . $user->id,
             'phone' => 'required',
-            'address' => 'required'
+            'address' => 'required',
+            'latitude' => 'required',
+            'longitude' => 'required'
         ]);
 
         // 2. Update properties
-        $user->fill($request->only(['name', 'username', 'email', 'phone', 'address']));
+        $user->fill($request->only(['name', 'username', 'email', 'phone', 'address', 'latitude', 'longitude']));
 
         // 3. Save and check for errors
         if ($user->save()) {
