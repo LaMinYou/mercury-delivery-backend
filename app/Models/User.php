@@ -33,6 +33,8 @@ class User extends Authenticatable
         'longitude'
     ];
 
+    protected $with = ['role'];
+
     /**
      * The attributes that should be hidden for serialization.
      *

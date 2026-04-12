@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -17,13 +18,19 @@ Route::middleware('auth:sanctum')->group(function(){
     // for only admin
     Route::middleware('role:1')->group(function () {
         Route::get('/auth/admin', [AuthController::class, 'getAdminUser']);
+        Route::get('/admin/users/role-count', [UserController::class, 'getRoleCounts']);
         Route::post('/auth/admin/restaurant/new', [RestaurantController::class, 'store']);
         Route::get('/auth/admin/restaurants', [RestaurantController::class, 'index']);
         Route::get('/auth/admin/restaurant/{user}', [RestaurantController::class, 'edit']);
         Route::post('/auth/admin/restaurants/{user}', [RestaurantController::class, 'update']);
         Route::post('/auth/admin/restaurants/updatestatus/{user}', [RestaurantController::class, 'handleStatus']);
         Route::delete('/auth/admin/restaurants/{user}', [RestaurantController::class, 'destroy']);
-        Route::get('/admin/users/role-count', [UserController::class, 'getRoleCounts']);
+        Route::get('/auth/admin/menu-categories', [CategoryController::class, 'index']);
+        Route::post('/auth/admin/menu-category/new', [CategoryController::class, 'store']);
+        Route::get('/auth/admin/menu-categories/{category}', [CategoryController::class, 'edit']);
+        Route::post('/auth/admin/menu-categories/{category}', [CategoryController::class, 'update']);
+        Route::delete('/auth/admin/menu-categories/{category}', [CategoryController::class, 'destroy']);
+
     });
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 });
