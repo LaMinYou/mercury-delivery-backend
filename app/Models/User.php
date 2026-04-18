@@ -61,4 +61,8 @@ class User extends Authenticatable
     public function role(){
         return $this->belongsTo(Role::class);
     }
+
+    public function menus(){
+        return $this->hasMany(Menu::class, 'restaurant_id');
+    }
 }
