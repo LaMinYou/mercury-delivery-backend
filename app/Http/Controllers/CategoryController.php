@@ -40,6 +40,11 @@ class CategoryController extends Controller
         ]);
     }
 
+    public function all(){
+        $categories = Category::latest()->get();
+        return response()->json($categories);
+    }
+
     /**
      * Show the form for creating a new resource.
      */

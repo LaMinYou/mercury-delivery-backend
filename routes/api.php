@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\MenuController;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -32,5 +33,11 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::delete('/auth/admin/menu-categories/{category}', [CategoryController::class, 'destroy']);
 
     });
+
+    Route::middleware('role:2')->group(function() {
+        Route::get('/auth/restaurant/categories', [CategoryController::class, 'all']);
+        Route::post('/auth/restaurant/menus/new', [MenuController::class, 'store']);
+    });
+
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 });
