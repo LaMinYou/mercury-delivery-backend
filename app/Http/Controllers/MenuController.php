@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Menu;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MenuController extends Controller
 {
@@ -83,7 +84,7 @@ class MenuController extends Controller
      */
     public function edit(Menu $menu)
     {
-        //
+        return response()->json($menu);
     }
 
     /**
@@ -91,7 +92,32 @@ class MenuController extends Controller
      */
     public function update(Request $request, Menu $menu)
     {
-        //
+
+        // Validation (Image ကို optional ထားပါ)
+        $request->validate([
+            'title' => 'required',
+            'subtitle' => 'required|string|max:255',
+            'category_id' => 'required',
+            'price' => 'required|numeric',
+            'image' => 'nullable|image|max:2048',
+            'description' => 'required',
+            'available_count' => 'required|integer',
+            'is_available' => 'required'
+        ]);
+
+        $data = $request->except('image');
+
+        if ($request->hasFile('image')) {
+            // remove old image
+            if ($menu->image) {
+                Storage::disk('public')->delete($menu->image);
+            }
+            // store new image
+            $data['image'] = $request->file('image')->store('menus', 'public');
+        }
+
+        $menu->update($data);
+        return response()->json(['status' => 'success']);
     }
 
     /**
@@ -99,6 +125,51 @@ class MenuController extends Controller
      */
     public function destroy(Menu $menu)
     {
-        //
+        try{
+            $menu->delete();
+            return response()->json(['message' => 'Deleted menu successfully']);
+        }catch(\Exception $e){
+            return response()->json(['message' => 'Something went wrong while deleteing the record.'], 500);
+        }
+    }
+
+    public function findByRestaurantId(Request $request, $id)
+    {
+        // 1. Base Query
+        $query = Menu::where('restaurant_id', $id);
+
+        // 2. Apply Search Filters
+        if ($request->filled('title')) {
+            $query->where('title', 'like', "%{$request->title}%");
+        }
+        if ($request->filled('subtitle')) {
+            $query->where('subtitle', 'like', "%{$request->subtitle}%");
+        }
+        if ($request->filled('category_id')) {
+            if ($request->category_id != null)
+                $query->where('category_id', $request->category_id);
+        }
+        if ($request->filled('discount')) {
+            if ($request->discount != 'All')
+                $query->whereNotNull('discount_price');
+        }
+
+        // 3. Handle Sorting (The fix for the arrows)
+        if ($request->has('sortBy') && is_array($request->sortBy)) {
+            foreach ($request->sortBy as $sort) {
+                $query->orderBy($sort['key'], $sort['order']);
+            }
+        } else {
+            $query->latest(); // Default sort if no arrow is clicked
+        }
+
+        // 4. Pagination
+        $perPage = $request->input('itemsPerPage', 5);
+        $restaurants = $query->paginate($perPage);
+
+        return response()->json([
+            'items' => $restaurants->items(),
+            'total' => $restaurants->total(),
+        ]);
     }
 }

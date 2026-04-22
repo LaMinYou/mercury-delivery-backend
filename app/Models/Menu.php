@@ -21,11 +21,23 @@ class Menu extends Model
 
     protected $with = ['restaurant', 'category'];
 
+    // Data ထုတ်ပေးတိုင်း image_url ဆိုတဲ့ field အသစ် ပါသွားအောင် လုပ်ခြင်း
+    protected $appends = ['image_url'];
+
     public function restaurant(){
         return $this->belongsTo(User::class, 'restaurant_id', 'id');
     }
 
     public function category(){
         return $this->belongsTo(Category::class);
+    }
+
+    // Image URL အပြည့်အစုံ ထုတ်ပေးသော Accessor
+    public function getImageUrlAttribute()
+    {
+        if ($this->image) {
+            return asset('storage/' . $this->image);
+        }
+        return asset('images/placeholder.jpg'); // ပုံမရှိရင်ပြမယ့် default ပုံ
     }
 }

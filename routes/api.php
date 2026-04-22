@@ -37,6 +37,10 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::middleware('role:2')->group(function() {
         Route::get('/auth/restaurant/categories', [CategoryController::class, 'all']);
         Route::post('/auth/restaurant/menus/new', [MenuController::class, 'store']);
+        Route::get('/auth/restaurant/{id}/menus', [MenuController::class, 'findByRestaurantId']);
+        Route::get('/auth/restaurant/menus/{menu}', [MenuController::class, 'edit']);
+        Route::put('/auth/restaurant/menus/{menu}', [MenuController::class, 'update']);
+        Route::delete('/auth/restaurant/menus/{menu}', [MenuController::class, 'destroy']);
     });
 
     Route::post('/auth/logout', [AuthController::class, 'logout']);
