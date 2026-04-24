@@ -25,7 +25,7 @@ class RestaurantController extends Controller
             $query->where('address', 'like', "%{$request->address}%");
         }
         if ($request->filled('status')) {
-            if($request->status != 'all')
+            if ($request->status != 'all')
                 $query->where('status', $request->status);
         }
 
@@ -65,7 +65,12 @@ class RestaurantController extends Controller
             'name' => 'required|string',
             'username' => 'required|string|max:255|unique:users,username',
             'password' => 'required|min:8',
-            'phone' => 'required|string|regex:/^([0-9\s\-\+\(\)]*)$/|min:10',
+            'phone' => [
+                'required',
+                'string',
+                'regex:/^(09|\+959)(4|2|5|7|8|9|6)([0-9]{7,9})$/', // pattern အပြည့်အစုံကို / / ထဲမှာ ထည့်ပါ
+                'unique:users'
+            ],
             'address' => 'required',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
@@ -100,10 +105,8 @@ class RestaurantController extends Controller
      */
     public function show(User $user)
     {
-        try{
-
-        }catch(\Exception $e){
-
+        try {
+        } catch (\Exception $e) {
         }
     }
 
@@ -138,10 +141,11 @@ class RestaurantController extends Controller
         return response()->json(['message' => 'Error saving to database'], 500);
     }
 
-    public function handleStatus(User $user){
-        if($user->status == 'active'){
+    public function handleStatus(User $user)
+    {
+        if ($user->status == 'active') {
             $user->status = 'inactive';
-        }else{
+        } else {
             $user->status = 'active';
         }
         if ($user->save()) {
@@ -156,10 +160,10 @@ class RestaurantController extends Controller
      */
     public function destroy(User $user)
     {
-        try{
+        try {
             $user->delete();
             return response()->json(['message' => 'Deleted restaurant successfully']);
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return response()->json(['message' => 'Something went wrong while deleteing the record.'], 500);
         }
     }

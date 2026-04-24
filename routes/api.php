@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\RestaurantController;
+use App\Http\Controllers\RiderController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -20,17 +21,25 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::middleware('role:1')->group(function () {
         Route::get('/auth/admin', [AuthController::class, 'getAdminUser']);
         Route::get('/admin/users/role-count', [UserController::class, 'getRoleCounts']);
+
         Route::post('/auth/admin/restaurant/new', [RestaurantController::class, 'store']);
         Route::get('/auth/admin/restaurants', [RestaurantController::class, 'index']);
         Route::get('/auth/admin/restaurant/{user}', [RestaurantController::class, 'edit']);
         Route::post('/auth/admin/restaurants/{user}', [RestaurantController::class, 'update']);
         Route::post('/auth/admin/restaurants/updatestatus/{user}', [RestaurantController::class, 'handleStatus']);
         Route::delete('/auth/admin/restaurants/{user}', [RestaurantController::class, 'destroy']);
+
         Route::get('/auth/admin/menu-categories', [CategoryController::class, 'index']);
         Route::post('/auth/admin/menu-category/new', [CategoryController::class, 'store']);
         Route::get('/auth/admin/menu-categories/{category}', [CategoryController::class, 'edit']);
         Route::post('/auth/admin/menu-categories/{category}', [CategoryController::class, 'update']);
         Route::delete('/auth/admin/menu-categories/{category}', [CategoryController::class, 'destroy']);
+
+        Route::get('/auth/admin/riders', [RiderController::class, 'index']);
+        Route::post('/auth/admin/rider/new', [RiderController::class, 'store']);
+        Route::get('/auth/admin/rider/{user}', [RiderController::class, 'edit']);
+        Route::post('/auth/admin/rider/{user}', [RiderController::class, 'update']);
+        Route::delete('/auth/admin/riders/{user}', [RiderController::class, 'destroy']);
 
     });
 
