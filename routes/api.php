@@ -5,6 +5,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\RiderController;
+use App\Http\Controllers\TagController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -40,6 +41,12 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::get('/auth/admin/rider/{user}', [RiderController::class, 'edit']);
         Route::post('/auth/admin/rider/{user}', [RiderController::class, 'update']);
         Route::delete('/auth/admin/riders/{user}', [RiderController::class, 'destroy']);
+
+        Route::get('/auth/admin/tags', [TagController::class, 'index']);
+        Route::post('/auth/admin/tags/new', [TagController::class, 'store']);
+        Route::get('/auth/admin/tags/{tag}', [TagController::class, 'edit']);
+        Route::put('/auth/admin/tags/{tag}', [TagController::class, 'update']);
+        Route::delete('/auth/admin/tags/{tag}', [TagController::class, 'destroy']);
 
     });
 

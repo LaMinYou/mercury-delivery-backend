@@ -32,6 +32,10 @@ class Menu extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function tags(){
+        return $this->belongsToMany(Tag::class, 'menu_tag');
+    }
+
     // Image URL အပြည့်အစုံ ထုတ်ပေးသော Accessor
     public function getImageUrlAttribute()
     {
