@@ -57,6 +57,8 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::get('/auth/restaurant/menus/{menu}', [MenuController::class, 'edit']);
         Route::put('/auth/restaurant/menus/{menu}', [MenuController::class, 'update']);
         Route::delete('/auth/restaurant/menus/{menu}', [MenuController::class, 'destroy']);
+
+        Route::get('/auth/restaurant/tags', [TagController::class, 'all']);
     });
 
     Route::post('/auth/logout', [AuthController::class, 'logout']);

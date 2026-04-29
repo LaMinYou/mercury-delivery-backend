@@ -50,6 +50,11 @@ class TagController extends Controller
         ]);
     }
 
+    public function all(){
+        $tags = Tag::latest()->get();
+        return response()->json($tags);
+    }
+
     /**
      * Show the form for creating a new resource.
      */

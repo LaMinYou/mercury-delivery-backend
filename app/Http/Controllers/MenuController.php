@@ -59,10 +59,15 @@ class MenuController extends Controller
                     'description' => $request->description
                 ]);
 
+                if ($request->has('tags')) {
+                    $tagIds = json_decode($request->tags);
+                    $menu->tags()->sync($tagIds);
+                }
+
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Menu created successfully',
-                    'data' => $menu,
+                    'data' => $menu->load('tags'),
                     'url' => asset('storage/' . $path)
                 ], 201);
             }
@@ -84,7 +89,7 @@ class MenuController extends Controller
      */
     public function edit(Menu $menu)
     {
-        return response()->json($menu);
+        return response()->json($menu->load('tags'));
     }
 
     /**
@@ -117,6 +122,11 @@ class MenuController extends Controller
         }
 
         $menu->update($data);
+        // Tags များကို Update လုပ်ခြင်း (sync သုံးရင် အဟောင်းဖြုတ် အသစ်ထည့် အလိုလိုလုပ်ပေးပါတယ်)
+        if ($request->has('tags')) {
+            $tagIds = json_decode($request->tags);
+            $menu->tags()->sync($tagIds);
+        }
         return response()->json(['status' => 'success']);
     }
 
@@ -125,10 +135,10 @@ class MenuController extends Controller
      */
     public function destroy(Menu $menu)
     {
-        try{
+        try {
             $menu->delete();
             return response()->json(['message' => 'Deleted menu successfully']);
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return response()->json(['message' => 'Something went wrong while deleteing the record.'], 500);
         }
     }
