@@ -16,12 +16,13 @@ return new class extends Migration
             $table->unsignedBigInteger('role_id')->default(3);
             $table->string('name')->nullable();
             $table->string('username');
-            $table->string('email')->unique();
+            $table->string('email')->unique()->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('phone')->nullable();
-            $table->string('address')->nullable();
-            $table->string('location')->nullable();
+            $table->text('address')->nullable();
+            $table->decimal('latitude', 10, 8)->nullable();
+            $table->decimal('longitude', 11, 8)->nullable();
             $table->string('status')->nullable();
             $table->rememberToken();
             $table->timestamps();

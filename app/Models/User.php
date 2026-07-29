@@ -21,6 +21,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'cover_image',
         'username',
         'email',
         'password',
@@ -28,8 +29,15 @@ class User extends Authenticatable
         'address',
         'location',
         'status',
-        'role_id'
+        'role_id',
+        'latitude',
+        'longitude', 
+        'shop_message'
     ];
+
+    protected $with = ['role'];
+
+    protected $appends = ['image_url'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -56,5 +64,49 @@ class User extends Authenticatable
 
     public function role(){
         return $this->belongsTo(Role::class);
+    }
+
+    public function menus(){
+        return $this->hasMany(Menu::class, 'restaurant_id');
+    }
+
+    public function restaurantOrders()
+    {
+        return $this->hasMany(Order::class, 'restaurant_id', 'id');
+    }
+
+    public function customers()
+    {
+        return $this->hasManyThrough(
+            User::class,          // ၁။ ရယူချင်တဲ့ Model
+            Order::class,         // ၂။ ကြားခံ Model (Orders table)
+            'restaurant_id',      // ၃။ Order table ထဲက Restaurant ကိုညွှန်းတဲ့ Foreign key
+            'id',                 // ၄။ Users table (Customer) ရဲ့ Primary key
+            'id',                 // ၅။ Users table (Restaurant) ရဲ့ Primary key
+            'customer_id'             // ၆။ Order table ထဲက Customer ကိုညွှန်းတဲ့ Foreign key
+        )->distinct();           
+    }
+
+    public function customerOrders()
+    {
+        return $this->hasMany(Order::class, 'customer_id', 'id');
+    }
+
+    public function riderOrders()
+    {
+        return $this->hasMany(Order::class, 'rider_id', 'id');
+    }
+
+    public function userPaymentTransactions(){
+        return $this->hasMany(PaymentTransaction::class);
+    }
+
+    // Image URL အပြည့်အစုံ ထုတ်ပေးသော Accessor
+    public function getImageUrlAttribute()
+    {
+        if ($this->cover_image) {
+            return asset('storage/' . $this->cover_image);
+        }
+        return asset('images/placeholder.jpg'); // ပုံမရှိရင်ပြမယ့် default ပုံ
     }
 }
