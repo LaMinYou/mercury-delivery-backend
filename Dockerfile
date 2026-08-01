@@ -12,8 +12,7 @@ RUN apk add --no-cache \
     freetype-dev \
     oniguruma-dev \
     libxml2-dev \
-    supervisor \
-    nginx
+    supervisor
 
 # PHP Extensions များ တပ်ဆင်ခြင်း
 RUN docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd
@@ -33,18 +32,11 @@ RUN composer install --no-dev --optimize-autoloader
 # Storage & Cache permissions ပေးခြင်း
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Supervisor config ကို copy ကူးခြင်း
+COPY supervisord.conf /etc/supervisord.conf
+
 # Coolify / Reverb အတွက် Port ဖွင့်ပေးခြင်း
-EXPOSE 8000
+EXPOSE 8000 8080
 
-# ---------------------------------------------------
-# 🔥 entrypoint.sh အတွက် ထည့်သွင်းထားသော အပိုင်း
-# ---------------------------------------------------
-
-# entrypoint.sh ကို container ထဲသို့ copy ကူးမည်
-COPY entrypoint.sh /entrypoint.sh
-
-# Script ကို execute လုပ်ပိုင်ခွင့် (Permission) ပေးမည်
-RUN chmod +x /entrypoint.sh
-
-# Container စတက်တာနဲ့ entrypoint.sh ကို စတင် run မည်
-ENTRYPOINT ["/entrypoint.sh"]
+# Container စတက်တာနဲ့ supervisord ကို run ပြီး process များကို ထိန်းချုပ်မည်
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
