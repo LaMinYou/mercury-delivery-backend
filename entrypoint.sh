@@ -14,7 +14,7 @@ php artisan route:cache
 
 # Run Database Migrations
 echo "📦 Running database migrations..."
-php artisan migrate --force
+php artisan migrate --seed --force
 
 # Create storage link if it doesn't exist
 echo "🔗 Creating storage link..."
@@ -22,7 +22,7 @@ php artisan storage:link --force || true
 
 # Start Reverb Server in the background
 echo "⚡ Starting Reverb Server..."
-php artisan reverb:start --host=0.0.0.0 --port=8000 &
+php artisan reverb:start --host=0.0.0.0 --port=8080 &
 
 # Start the Main Web Server (Laravel Development Server or Apache/Nginx/Octane)
 echo "🌐 Starting Main Server..."
