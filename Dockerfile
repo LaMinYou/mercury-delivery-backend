@@ -36,5 +36,15 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 # Coolify / Reverb အတွက် Port ဖွင့်ပေးခြင်း
 EXPOSE 8000
 
-# Container စတင်မည့် Command (Migration & Server Run)
-CMD php artisan migrate --force && php artisan optimize && php artisan reverb:start --host=0.0.0.0 --port=8000
+# ---------------------------------------------------
+# 🔥 entrypoint.sh အတွက် ထည့်သွင်းထားသော အပိုင်း
+# ---------------------------------------------------
+
+# entrypoint.sh ကို container ထဲသို့ copy ကူးမည်
+COPY entrypoint.sh /entrypoint.sh
+
+# Script ကို execute လုပ်ပိုင်ခွင့် (Permission) ပေးမည်
+RUN chmod +x /entrypoint.sh
+
+# Container စတက်တာနဲ့ entrypoint.sh ကို စတင် run မည်
+ENTRYPOINT ["/entrypoint.sh"]
