@@ -77,7 +77,7 @@ class CustomerAuthController extends Controller
                 'role_id' => 3
             ]);
 
-            if(!$user->password){
+            if (!$user->password) {
                 $user->password = Hash::make(Str::random(24));
                 $user->save();
             }
@@ -91,7 +91,9 @@ class CustomerAuthController extends Controller
                 'role_id' => $user->role_id,
             ]);
 
-            return redirect('http://localhost:8080/social-callback?' . http_build_query([
+            $frontendUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:8080'));
+
+            return redirect($frontendUrl . '/social-callback?' . http_build_query([
                 'access_token' => $token,
                 'user' => $userData
             ]));
