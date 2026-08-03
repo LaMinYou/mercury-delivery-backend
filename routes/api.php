@@ -109,7 +109,7 @@ Route::middleware('auth:sanctum')->group(function(){
 
         Route::get('/auth/user-level', [CustomerController::class, 'getUserLevel']);
 
-        Route::put('/auth/user/update-profile', [CustomerController::class, 'updateProfile']);
+        // Route::put('/auth/user/update-profile', [CustomerController::class, 'updateProfile']);
     });
 
     Route::middleware('role:4')->group(function() {
@@ -132,6 +132,7 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::get('/auth/restaurant/order-history', [RestaurantController::class, 'completedOrders']);
     });
 
+    Route::put('/auth/user/update-profile', [CustomerController::class, 'updateProfile']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 });
 
