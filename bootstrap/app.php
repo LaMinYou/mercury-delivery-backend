@@ -23,6 +23,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/broadcasting/auth'
         ]);
 
+        $middleware->trustProxies(at: '*');
+
         $middleware->statefulApi();
 
         $middleware->append(\Illuminate\Http\Middleware\HandleCors::class);
