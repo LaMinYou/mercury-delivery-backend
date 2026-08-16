@@ -32,7 +32,8 @@ class User extends Authenticatable
         'role_id',
         'latitude',
         'longitude', 
-        'shop_message'
+        'shop_message',
+        'fcm_token'
     ];
 
     protected $with = ['role'];

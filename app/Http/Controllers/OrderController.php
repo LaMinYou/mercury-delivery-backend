@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification;
 
 class OrderController extends Controller
 {
@@ -405,6 +407,27 @@ class OrderController extends Controller
                 return response()->json(['message' => 'accepted for errand order']);
             } else {
                 broadcast(new OrderCreated($order));
+                //for background order noti
+                if ($order->restaurant && $order->restaurant->fcm_token) {
+                    try {
+                        $messaging = app('firebase.messaging');
+
+                        $message = CloudMessage::withTarget('token', $order->restaurant->fcm_token)
+                            // ->withNotification(Notification::create(
+                            //     'အော်ဒါအသစ် ရောက်ရှိ!',
+                            //     "Order #{$order->order_number} အတွက် ပြင်ဆင်ပါ။"
+                            // ))
+                            ->withData([
+                                'title' => 'အော်ဒါအသစ် ရောက်ရှိ!',
+                                'body' => "Order #{$order->order_number} အတွက် ပြင်ဆင်ပါ။",
+                                'target_url' => '/restaurant/',
+                                'role' => 'restaurant'
+                            ]);
+                        $messaging->send($message);
+                    } catch (\Exception $fcmError) {
+                        Log::error('Firebase Send Error: ' . $fcmError->getMessage());
+                    }
+                }
             }
 
             return response()->json(['message' => 'updated payment status of order to accepted'], 201);

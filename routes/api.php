@@ -134,6 +134,7 @@ Route::middleware('auth:sanctum')->group(function(){
 
     Route::put('/auth/user/update-profile', [CustomerController::class, 'updateProfile']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::patch('/auth/user/save-fcm-token', [UserController::class, 'saveFcmToken']);
 });
 
 Route::get('/tags', [TagController::class, 'all']);

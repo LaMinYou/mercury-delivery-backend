@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Events\PaymentTransactionCreated;
 use App\Models\PaymentTransaction;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Log;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification;
 
 class PaymentTransactionController extends Controller
 {
@@ -53,6 +57,28 @@ class PaymentTransactionController extends Controller
                 'image' => $path
             ]);
             broadcast(new PaymentTransactionCreated($transaction));
+            //for payment transaction background noti
+            $admin = User::where('role_id', 1)->whereNotNull('fcm_token')->first();
+            if ($admin->fcm_token) {
+                    try {
+                        $messaging = app('firebase.messaging');
+
+                        $message = CloudMessage::withTarget('token', $admin->fcm_token)
+                            // ->withNotification(Notification::create(
+                            //     'Transaction အသစ် ရောက်ရှိ!',
+                            //     "ငွေပေးချေမှုကိုစစ်ဆေးပါ။"
+                            // ))
+                            ->withData([
+                                'title' => 'Transaction အသစ် ရောက်ရှိ!',
+                                'body' => "ငွေပေးချေမှုကိုစစ်ဆေးပါ။",
+                                'target_url' => '/admin/transactions/',
+                                'role' => 'admin'
+                            ]);
+                        $messaging->send($message);
+                    } catch (\Exception $fcmError) {
+                        Log::error('Firebase Send Error: ' . $fcmError->getMessage());
+                    }
+                }
 
             return response()->json(['message' => 'transaction is created'], 201);
         }catch(\Exception $e){

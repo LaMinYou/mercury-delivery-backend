@@ -104,6 +104,10 @@ class CustomerAuthController extends Controller
 
     public function logout(Request $request)
     {
+        //remove fcm token for unnecessary background notis after logout
+        $request->user()->update([
+            'fcm_token' => null
+        ]);
         // Revoke the token that was used to authenticate the current request
         $request->user()->currentAccessToken()->delete();
 
