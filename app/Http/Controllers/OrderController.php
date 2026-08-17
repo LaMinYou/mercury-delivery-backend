@@ -410,6 +410,7 @@ class OrderController extends Controller
                 //for background order noti
                 if ($order->restaurant && $order->restaurant->fcm_token) {
                     try {
+                        Log::info('Sending FCM to Token: ' . $order->restaurant->fcm_token);
                         $messaging = app('firebase.messaging');
 
                         $message = CloudMessage::withTarget('token', $order->restaurant->fcm_token)
@@ -423,7 +424,8 @@ class OrderController extends Controller
                                 'target_url' => '/restaurant/',
                                 'role' => 'restaurant'
                             ]);
-                        $messaging->send($message);
+                        $result = $messaging->send($message);
+                        Log::info('FCM Send Success Result: ', (array)$result);
                     } catch (\Exception $fcmError) {
                         Log::error('Firebase Send Error: ' . $fcmError->getMessage());
                     }
