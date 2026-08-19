@@ -269,7 +269,8 @@ class RiderController extends Controller
                 ]);
             } else {
                 auth()->user()->update([
-                    'status' => 'inactive'
+                    'status' => 'inactive',
+                    'fcm_token' => null
                 ]);
             }
         } catch (\Exception $e) {

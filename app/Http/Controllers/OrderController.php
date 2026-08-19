@@ -34,6 +34,11 @@ class OrderController extends Controller
         //
     }
 
+    public function orderDetails(Order $order)
+    {
+        return response()->json($order);
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -198,6 +203,7 @@ class OrderController extends Controller
                 }])
                 ->where('role_id', 4)
                 ->where('status', 'available')
+                ->whereNotNull('fcm_token')
                 ->having('distance', '<', $radius)
                 ->having('rider_orders_count', '<', 3)
                 ->orderBy('distance', 'asc')
@@ -219,6 +225,7 @@ class OrderController extends Controller
                 )
                 ->where('role_id', 4)
                 ->where('status', 'available')
+                ->whereNotNull('fcm_token')
                 ->having('distance', '<', 20)
                 ->orderBy('distance', 'asc')
                 ->take(3)
@@ -235,6 +242,22 @@ class OrderController extends Controller
                 ]);
 
                 broadcast(new RiderOrderAssigned($rider->id, $order));
+                //for background noti
+                try {
+                    $messaging = app('firebase.messaging');
+
+                    $message = CloudMessage::withTarget('token', $rider->fcm_token)
+                        ->withData([
+                            'title' => 'New Incoming Assign',
+                            'body' => "အော်ဒါ ကမ်းလှမ်းချက်အသစ် ရရှိပါသည်!",
+                            'target_url' => '/rider/',
+                            'role' => 'rider',
+                            'order_id' => $order->id
+                        ]);
+                    $messaging->send($message);
+                } catch (\Exception $fcmError) {
+                    Log::error('Firebase Send Error: ' . $fcmError->getMessage());
+                }
             }
             return true;
         }
@@ -294,64 +317,18 @@ class OrderController extends Controller
                 $restaurantLat = $order->restaurant->latitude;
                 $restaurantLng = $order->restaurant->longitude;
 
-                $nearbyRiders = collect(); // အစပိုင်းတွင် အလွတ်တစ်ခု ဆောက်ထားမည်
-                $radius = 5; // စတင်ရှာဖွေမည့် ကီလိုမီတာ (အကွာအဝေး)
+                $hasRiders = $this->assignToRiders($restaurantLat, $restaurantLng, $order);
 
-                // အားသော ရိုက်ဒါ မတွေ့မချင်း သို့မဟုတ် ၁၅ ကီလိုမီတာ အထိ ဧရိယာချဲ့၍ ပတ်ရှာမည်
-                while ($nearbyRiders->isEmpty() && $radius <= 15) {
-
-                    $nearbyRiders = User::select('users.*')
-                        ->selectRaw(
-                            '( 6371 * acos( cos( radians(?) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( latitude ) ) ) ) AS distance',
-                            [$restaurantLat, $restaurantLng, $restaurantLat]
-                        )
-                        ->withCount(['riderOrders' => function ($query) {
-                            $query->whereIn('delivery_status', ['picking', 'delivering']);
-                        }])
-                        ->where('role_id', 4)
-                        ->where('status', 'available')
-                        ->having('distance', '<', $radius) // ၅ ကီလိုမီတာမှ ၁၀၊ ၁၅ ကီလိုမီတာသို့ တဖြည်းဖြည်း ကျယ်ပြန့်သွားမည်
-                        ->having('rider_orders_count', '<', 3) // သတိပြုရန် - withCount သုံးလျှင် variable နာမည်သည် {relation}_count အတိုင်း rider_orders_count ဖြစ်ရပါမည်
-                        ->orderBy('distance', 'asc')
-                        ->take(3)
-                        ->get();
-
-                    // အကယ်၍ မတွေ့ပါက နောက်တစ်ကြိမ်တွင် ၅ ကီလိုမီတာ ထပ်တိုး၍ ရှာရန် ပြင်ဆင်ခြင်း
-                    if ($nearbyRiders->isEmpty()) {
-                        $radius += 5;
-                    }
-                }
-
-                //အကယ်၍ ၁၅ ကီလိုမီတာအထိ ရှာဖွေပြီးသည့်တိုင် ရိုက်ဒါ လုံးဝမရှိသေးပါက ကန့်သတ်ချက်ကို လျှော့ချ၍ (လက်ရှိအော်ဒါ ၃ ခုထက် ကျော်နေသူများကိုပါ) နောက်ဆုံးအနေဖြင့် အကုန်သိမ်းကျုံးရှာခြင်း
-                if ($nearbyRiders->isEmpty()) {
-                    $nearbyRiders = User::select('users.*')
-                        ->selectRaw(
-                            '( 6371 * acos( cos( radians(?) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( latitude ) ) ) ) AS distance',
-                            [$restaurantLat, $restaurantLng, $restaurantLat]
-                        )
-                        ->where('role_id', 4)
-                        ->where('status', 'available')
-                        ->having('distance', '<', 20) // အဝေးကြီးအထိ ရှာမည်
-                        ->orderBy('distance', 'asc')
-                        ->take(3)
-                        ->get();
-                }
-
-                // ရိုက်ဒါများ တွေ့ရှိပါက ကမ်းလှမ်းချက် ပို့မည်
-                if ($nearbyRiders->isNotEmpty()) {
-                    foreach ($nearbyRiders as $rider) {
-                        OrderRiderOffer::create([
-                            'order_id' => $order->id,
-                            'rider_id' => $rider->id,
-                            'status' => 'pending'
-                        ]);
-
-                        broadcast(new RiderOrderAssigned($rider->id, $order));
-                    }
-                    return response()->json(['message' => 'Order accepted, looking for riders.'], 200);
+                if ($hasRiders) {
+                    return response()->json([
+                        'orderId' => $order->id,
+                        'message' => 'Rider ခေါ်ယူခြင်း အောင်မြင်ပါသည်။'
+                    ], 201);
                 } else {
-                    // လုံးဝကို ရှာမရတော့သည့် အခြေအနေ
-                    return response()->json(['message' => 'Order accepted, but no riders are available right now.'], 200);
+                    return response()->json([
+                        'orderId' => $order->id,
+                        'message' => 'လက်ရှိတွင် အားသော ရိုက်ဒါ မရှိသေးပါ။'
+                    ], 201);
                 }
             } elseif ($request->status === 'rejected') {
                 $order->update([
@@ -571,7 +548,7 @@ class OrderController extends Controller
             DB::raw('DATE(updated_at) as date'),
             DB::raw('count(*) as count')
         )
-            ->whereBetween('updated_at', [$evenDaysAgo, $today])
+            ->whereBetween('updated_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
             ->groupBy('date')
             ->orderBy('date', 'Asc')
             ->get()
@@ -607,7 +584,8 @@ class OrderController extends Controller
         }
     }
 
-    public function settleRestaurantOrders(Request $request){
+    public function settleRestaurantOrders(Request $request)
+    {
         $request->validate([
             'order_ids' => 'required|array',
             'order_ids.*' => 'exists:orders,id'

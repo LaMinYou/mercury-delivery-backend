@@ -122,6 +122,8 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::get('auth/rider/nearest-riders', [RiderController::class, 'nearestRiders']);
         Route::post('auth/rider/order-handover/{order}', [OrderController::class, 'orderHandOver']);
         Route::post('auth/rider/order-release/{order}', [OrderController::class, 'releaseOrder']);
+
+        Route::get('auth/rider/order-details/{order}', [OrderController::class, 'orderDetails']);
     });
 
     Route::middleware('role:4,1')->group(function() {

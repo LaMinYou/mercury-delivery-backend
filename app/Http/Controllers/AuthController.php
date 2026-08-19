@@ -50,6 +50,8 @@ class AuthController extends Controller
         // Revoke the token that was used to authenticate the current request
         $request->user()->currentAccessToken()->delete();
 
+        if($request->user()->role->name == 'rider') $request->user()->update(['status' => 'inactive']);
+
         return response()->json([
             'message' => 'Successfully logged out'
         ]);
