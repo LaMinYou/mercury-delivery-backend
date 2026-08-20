@@ -205,9 +205,9 @@ class OrderController extends Controller
                 ->where('status', 'available')
                 ->whereNotNull('fcm_token')
                 ->having('distance', '<', $radius)
-                ->having('rider_orders_count', '<', 3)
+                ->having('rider_orders_count', '<', 5)
                 ->orderBy('distance', 'asc')
-                ->take(3)
+                ->take(5)
                 ->get();
 
             // 💡 ဘာမှမတွေ့ရင် Radius ကို ၅ ကီလိုမီတာ တိုးမယ်
@@ -228,7 +228,7 @@ class OrderController extends Controller
                 ->whereNotNull('fcm_token')
                 ->having('distance', '<', 20)
                 ->orderBy('distance', 'asc')
-                ->take(3)
+                ->take(5)
                 ->get();
         }
 
@@ -447,12 +447,12 @@ class OrderController extends Controller
 
     public function releaseOrder(Order $order)
     {
-        // 💡 လုံခြုံရေးစစ်ဆေးချက် - လက်ရှိ Login ဝင်ထားသူဟာ ဒီအော်ဒါကို ကိုင်ထားတဲ့ ရိုက်ဒါ ဟုတ်မဟုတ် စစ်မည်
+        // check whether logged in rider is belongs to this order
         if ($order->rider_id !== auth()->id()) {
             return response()->json(['error' => 'Unauthorized action.'], 403);
         }
 
-        // 💡 လုံခြုံရေးစစ်ဆေးချက် ၂ - အော်ဒါက ဆိုင်မှာယူဆဲ (picking) အဆင့် ဖြစ်မှသာ Release ခွင့်ပြုမည်
+        // allow to release order if order status is picking
         if ($order->delivery_status !== 'picking') {
             return response()->json(['error' => 'Cannot release order at this stage.'], 400);
         }
@@ -488,11 +488,12 @@ class OrderController extends Controller
                     }])
                     ->where('role_id', 4)
                     ->where('status', 'available')
+                    ->whereNotNull('fcm_token')
                     ->where('id', '!=', auth()->id())
                     ->having('distance', '<', $radius)
-                    ->having('rider_orders_count', '<', 3)
+                    ->having('rider_orders_count', '<', 5)
                     ->orderBy('distance', 'asc')
-                    ->take(3)
+                    ->take(5)
                     ->get();
 
                 if ($nearbyRiders->isEmpty()) {
@@ -509,10 +510,11 @@ class OrderController extends Controller
                     )
                     ->where('role_id', 4)
                     ->where('status', 'available')
+                    ->whereNotNull('fcm_token')
                     ->where('id', '!=', auth()->id())
                     ->having('distance', '<', 20)
                     ->orderBy('distance', 'asc')
-                    ->take(3)
+                    ->take(5)
                     ->get();
             }
 
@@ -525,6 +527,22 @@ class OrderController extends Controller
                     ]);
 
                     broadcast(new RiderOrderAssigned($rider->id, $order));
+                    //for background noti
+                    try {
+                        $messaging = app('firebase.messaging');
+
+                        $message = CloudMessage::withTarget('token', $rider->fcm_token)
+                            ->withData([
+                                'title' => 'New Incoming Assign',
+                                'body' => "အော်ဒါ ကမ်းလှမ်းချက်အသစ် ရရှိပါသည်!",
+                                'target_url' => '/rider/',
+                                'role' => 'rider',
+                                'order_id' => $order->id
+                            ]);
+                        $messaging->send($message);
+                    } catch (\Exception $fcmError) {
+                        Log::error('Firebase Send Error: ' . $fcmError->getMessage());
+                    }
                 }
 
                 DB::commit();
