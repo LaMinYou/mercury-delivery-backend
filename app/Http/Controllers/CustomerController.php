@@ -168,7 +168,7 @@ class CustomerController extends Controller
 
     public function currentOrders()
     {
-        $orders = Order::where('customer_id', auth()->user()->id)
+        $orders = Order::with('orderItems')->where('customer_id', auth()->user()->id)
             ->whereIn('delivery_status', ['pending', 'picking', 'delivering'])
             ->latest()->get();
         return response()->json($orders);
