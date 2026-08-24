@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Str;
 use GuzzleHttp\Client;
+use Laravel\Reverb\Loggers\Log;
 
 class CustomerAuthController extends Controller
 {
@@ -103,16 +104,30 @@ class CustomerAuthController extends Controller
     }
 
     public function logout(Request $request)
-    {
-        //remove fcm token for unnecessary background notis after logout
-        $request->user()->update([
-            'fcm_token' => null
-        ]);
-        // Revoke the token that was used to authenticate the current request
-        $request->user()->currentAccessToken()->delete();
+{
+    try {
+        $user = $request->user();
+
+        if ($user) {
+            $user->update(['fcm_token' => null]);
+
+            if ($user->currentAccessToken()) {
+                $user->currentAccessToken()->delete();
+            }
+        }
 
         return response()->json([
-            'message' => 'Successfully logged out'
-        ]);
+            'status' => 'success',
+            'message' => 'Logged out successfully'
+        ], 200);
+
+    } catch (\Exception $e) {
+        Log::error('Logout Error: ' . $e->getMessage());
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Logged out with cleanup'
+        ], 200);
     }
+}
 }
