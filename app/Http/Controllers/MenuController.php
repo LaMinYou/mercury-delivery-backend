@@ -99,8 +99,6 @@ class MenuController extends Controller
      */
     public function update(Request $request, Menu $menu)
     {
-
-        // Validation (Image ကို optional ထားပါ)
         $request->validate([
             'title' => 'required',
             'subtitle' => 'required|string|max:255',
