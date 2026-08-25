@@ -99,11 +99,17 @@ class MenuController extends Controller
      */
     public function update(Request $request, Menu $menu)
     {
+        if ($request->discount_price === 'null' || $request->discount_price === '') {
+        $request->merge([
+            'discount_price' => null
+        ]);
+    }
         $request->validate([
             'title' => 'required',
             'subtitle' => 'required|string|max:255',
             'category_id' => 'required',
             'price' => 'required|numeric',
+            'discount_price' => 'nullable|numeric',
             'image' => 'nullable|image|max:2048',
             'description' => 'required',
             'available_count' => 'required|integer',
@@ -246,5 +252,4 @@ class MenuController extends Controller
             return response()->json(['error' => $e->getMessage()]);
         }
     }
-
 }
