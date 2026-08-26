@@ -5,6 +5,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DeliveryAssignedController;
+use App\Http\Controllers\DeliveryPromoController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemController;
@@ -75,6 +76,9 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::delete('/auth/admin/delivery-assigned-history/{orderRiderOffer}', [DeliveryAssignedController::class, 'destroy']);
 
         Route::get('/auth/admin/customers', [CustomerController::class, 'index']);
+
+        Route::post('/auth/admin/delivery-promo', [DeliveryPromoController::class, 'store']);
+        Route::delete('/auth/admin/delivery-promo/{deliveryPromo}', [DeliveryPromoController::class, 'destroy']);
 
     });
 
@@ -165,6 +169,8 @@ Route::post('/auth/customer/logout', [CustomerAuthController::class, 'logout']);
     // Google OAuth Routes
 Route::get('/auth/google/redirect', [CustomerAuthController::class, 'redirectToGoogle']);
 Route::get('/auth/google/callback', [CustomerAuthController::class, 'handleGoogleCallback']);
+
+Route::get('/delivery-promo', [DeliveryPromoController::class, 'getActivePromo']);
 
 
 
