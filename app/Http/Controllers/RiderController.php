@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class RiderController extends Controller
 {
@@ -85,6 +86,7 @@ class RiderController extends Controller
                 'regex:/^(09|\+959)(4|2|5|7|8|9|6)([0-9]{7,9})$/',
                 'unique:users'
             ],
+            'cover_image' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
 
         ]);
 
@@ -98,6 +100,13 @@ class RiderController extends Controller
             $rider->latitude = $request->latitude;
             $rider->longitude = $request->longitude;
             $rider->status = 'inactive';
+
+            $path = null;
+            if($request->hasFile('cover_image')){
+                $file = $request->file('cover_image');
+                $path = $file->store('riders', 'public');
+            }
+            $rider->cover_image = $path;
             $rider->save();
 
             return response()->json(['message' => 'new rider was added'], 201);
@@ -136,6 +145,7 @@ class RiderController extends Controller
                 'regex:/^(09|\+959)(4|2|5|7|8|9|6)([0-9]{7,9})$/',
                 Rule::unique('users')->ignore($user->id)
             ],
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
 
         ]);
 
@@ -143,6 +153,13 @@ class RiderController extends Controller
             $user->name = $request->name;
             $user->username = $request->username;
             $user->phone = $request->phone;
+
+            if($request->hasFile('cover_image')){
+                if($user->cover_image){
+                    Storage::disk('public')->delete($user->cover_image);
+                }
+                $user->cover_image = $request->file('cover_image')->store('riders', 'public');
+            }
             $user->save();
 
             return response()->json(['message' => 'rider info was successfully updated'], 201);
