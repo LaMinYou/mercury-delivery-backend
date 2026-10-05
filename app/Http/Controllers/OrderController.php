@@ -94,6 +94,7 @@ class OrderController extends Controller
             'dest_longitude' => 'required',
             'dest_address' => 'required',
             'dest_phone' => 'required',
+            'dest_type' => 'required',
             'delivery_fee' => 'required',
             'service_fee' => 'required',
             'payment_id' => 'required|exists:payment_methods,id',

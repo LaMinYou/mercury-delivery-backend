@@ -16,6 +16,7 @@ class Order extends Model
         'dest_latitude',
         'dest_longitude',
         'dest_address',
+        'dest_type',
         'dest_phone',
         'total_price',
         'delivery_fee',
@@ -60,5 +61,9 @@ class Order extends Model
 
     public function orderPaymentTransactions(){
         return $this->hasMany(PaymentTransaction::class);
+    }
+
+    public function invoicePhotos(){
+        return $this->hasMany(InvoicePhoto::class);
     }
 }

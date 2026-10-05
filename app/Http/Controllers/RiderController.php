@@ -298,12 +298,25 @@ class RiderController extends Controller
     public function updateDeliveryStatus(Request $request, Order $order)
     {
         $request->validate([
-            'deliveryStatus' => 'required|string'
+            'deliveryStatus' => 'required|string',
+            'photos.*' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
         ]);
         try {
             $order->update([
                 'delivery_status' => $request->deliveryStatus
             ]);
+            // if invoice photos exists store them in database and storage
+            if ($request->hasFile('photos')) {
+                foreach ($request->file('photos') as $photo) {
+                    // store photos in storage/app/public/invoice_photos
+                    $path = $photo->store('invoice_photos', 'public');
+
+                    $order->invoicePhotos()->create([
+                        'order_id' => $order->id,
+                        'photo_path' => $path
+                    ]);
+                }
+            }
             broadcast(new RiderDeliverStatusUpdated($order->customer_id, $order));
 
             return response()->json([
