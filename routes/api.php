@@ -99,6 +99,8 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::get('/auth/restaurant/customers', [CustomerController::class, 'shopCustomers']);
 
         Route::put('/auth/restaurant/{user}/update-status', [RestaurantController::class, 'updateShopStatus']);
+        Route::get('/auth/restaurant/rider-call-order-history', [RestaurantController::class, 'callRiderOrderHistory']);
+        Route::get('auth/restaurant/call-rider-orders/{order}', [RestaurantController::class, 'callRiderOrderDetails']);
     });
 
     Route::middleware('role:3')->group(function() {
@@ -109,6 +111,7 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::post('/auth/payment-transaction/new', [PaymentTransactionController::class, 'store']);
 
         Route::get('auth/customer/current-orders', [CustomerController::class, 'currentOrders']);
+        Route::get('auth/customer/completed-orders', [CustomerController::class, 'completedOrders']);
         Route::get('auth/customer/orders/{order}', [CustomerController::class, 'currentOrderDetails']);
 
         Route::get('/auth/user-level', [CustomerController::class, 'getUserLevel']);

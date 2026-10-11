@@ -10,7 +10,17 @@ class InvoicePhoto extends Model
 
     protected $with = ['order'];
 
+    protected $appends = ['image_url'];
+
     public function order(){
         return $this->belongsTo(Order::class, 'order_id', 'id');
+    }
+
+    public function getImageUrlAttribute()
+    {
+        if ($this->photo_path) {
+            return asset('storage/' . $this->photo_path);
+        }
+        return asset('images/placeholder.jpg');
     }
 }

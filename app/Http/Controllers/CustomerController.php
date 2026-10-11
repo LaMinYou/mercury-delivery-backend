@@ -174,9 +174,16 @@ class CustomerController extends Controller
         return response()->json($orders);
     }
 
+    public function completedOrders(){
+        $orders = Order::with(['orderItems', 'invoicePhotos'])->where('customer_id', auth()->user()->id)
+            ->where('delivery_status', 'completed')
+            ->latest()->get();
+        return response()->json($orders);
+    }
+
     public function currentOrderDetails(Order $order)
     {
-        return response()->json($order);
+        return response()->json($order->load('invoicePhotos'));
     }
 
     public function getUserLevel()

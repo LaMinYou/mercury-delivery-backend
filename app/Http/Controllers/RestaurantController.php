@@ -280,4 +280,16 @@ class RestaurantController extends Controller
             return response()->json(['message' => $e->getMessage()], 500);
         }
     }
+
+    public function callRiderOrderHistory(){
+        $orders = Order::with(['invoicePhotos'])->where('restaurant_id', auth()->user()->id)
+            ->where('delivery_status', 'completed')
+            ->where('order_type', 'merchant')
+            ->latest()->get();
+        return response()->json($orders);
+    }
+
+    public function callRiderOrderDetails(Order $order){
+        return response()->json($order->load('invoicePhotos'));
+    }
 }
